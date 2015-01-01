@@ -40,20 +40,28 @@ inserted content, so the next tag is appended.")
 (setq h-2-o-conversion-handlers
   '((html . h-2-o-process-children)
 	(body . h-2-o-process-children)
+	;; Section headers
 	(h1   . h-2-o-process-h1)
 	(h2   . h-2-o-process-h2)
 	(h3   . h-2-o-process-h3)
 	(h4   . h-2-o-process-h4)
+	;; Breaks
 	(br   . h-2-o-process-br)
+	(hr   . h-2-o-process-hr)
 	(p    . h-2-o-process-p)
+	;; Simple formatting
+	(b    . h-2-o-process-b)
+	;; Lists
 	(ol   . h-2-o-process-ol)
 	(ul   . h-2-o-process-ul)
+	;; Tables
 	(tr   . h-2-o-process-tr)
 	(td   . h-2-o-process-td)
 	(th   . h-2-o-process-td)
 	(table . h-2-o-process-table)
 	(thead . h-2-o-process-tbody)
 	(tbody . h-2-o-process-tbody)
+	;; Default
 	(t    . h-2-o-process-children)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,15 +151,18 @@ than 2 newlines before point.
 
 Additionally if the variable h-2-o-fill-string is t, the inserted string
 is formatted by `fill-regaion'."
-  (let ((string (h-2-o-string-trim-right string)))
-	(if (h-2-o-string-is-all-the-same-char string ?\n)
-		(h-2-o-ensure-char-count ?\n (min 2 (length string)))
+  (let ((new-string (h-2-o-string-trim-right string)))
+	(if (h-2-o-string-is-all-the-same-char new-string ?\n)
+		(h-2-o-ensure-char-count ?\n (min 2 (length new-string)))
 	  (let ((start (point)))
 		(insert string)
 		(h-2-o-replace-in-region "\\\\n" "\n" start (point-max))
 		(h-2-o-replace-in-region " " " " start (point-max))
 		(when h-2-o-fill-string
-			(fill-region start (point)))))))
+		  (let ((add-space (h-2-o-char-before-is ?\s 1)))
+			(fill-region start (point))
+			(when add-space
+			  (insert " "))))))))
 
 (defun h-2-o-process-children (parsed-html)
   "Basic handler function that iterates over the child nodes.
@@ -210,9 +221,26 @@ however it will convert all children of the PARSED-HTML."
 PARSED-HTML is ignored because the br tag should not have content."
   (insert "\n"))
 
+(defun h-2-o-process-hr (parsed-html)
+  "Insert horizontal ruler.
+PARSED-HTML is ignored because this tag does not have content"
+  (h-2-o-ensure-newline)
+  (insert "--------------------------------------------------------------------------------\n"))
+
 (defun h-2-o-process-p (parsed-html)
   "Insert PARSED-HTML as a paragraph."
   (h-2-o-process-h* nil parsed-html))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Bold italics etc.
+;;
+(defun h-2-o-process-b (parsed-html)
+  "Surround inserted text from PARSED-HTML with '*'.
+This will not work if the tag contains too much material and/or
+is reflowed, but as a simpel hack it might just work."
+  (insert "*")
+  (h-2-o-process-children parsed-html)
+  (insert "*"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
