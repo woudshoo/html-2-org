@@ -4,7 +4,7 @@
 
 ;;; Author: Willem Rein Oudshoorn <woudshoo@xs4all.nl>
 ;;; Created: December 2014
-;;; Version: 0.1
+;;; Version: 0.2
 ;;; Keywords: extensions
 
 ;; This file is not part of GNU Emacs
@@ -61,6 +61,8 @@ inserted content, so the next tag is appended.")
 	(table . h-2-o-process-table)
 	(thead . h-2-o-process-tbody)
 	(tbody . h-2-o-process-tbody)
+	;; Links
+	(a    . h-2-o-process-a)
 	;; Default
 	(t    . h-2-o-process-children)))
 
@@ -242,6 +244,17 @@ is reflowed, but as a simpel hack it might just work."
   (h-2-o-process-children parsed-html)
   (insert "*"))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Links
+;;
+(defun h-2-o-process-a (parsed-html)
+  "Insert PARSED-HTML as a link."
+  (insert "[[")
+  (insert (assoc-default 'href (cadr parsed-html)))
+  (insert "][")
+  (h-2-o-process-children parsed-html)
+  (insert "]]"))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Numbered and unnumbered lists
