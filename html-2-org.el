@@ -51,6 +51,7 @@ inserted content, so the next tag is appended.")
 	(p    . h-2-o-process-p)
 	;; Simple formatting
 	(b    . h-2-o-process-b)
+	(i    . h-2-o-process-i)
 	;; Lists
 	(ol   . h-2-o-process-ol)
 	(ul   . h-2-o-process-ul)
@@ -155,11 +156,14 @@ Additionally if the variable h-2-o-fill-string is t, the inserted string
 is formatted by `fill-regaion'."
   (let ((new-string (h-2-o-string-trim-right string)))
 	(if (h-2-o-string-is-all-the-same-char new-string ?\n)
+		;; Handle strings only containing new lines
 		(h-2-o-ensure-char-count ?\n (min 2 (length new-string)))
+	  ;; Handle normal strings
 	  (let ((start (point)))
 		(insert string)
 		(h-2-o-replace-in-region "\\\\n" "\n" start (point-max))
 		(h-2-o-replace-in-region " " " " start (point-max))
+		;; Post processing
 		(when h-2-o-fill-string
 		  (let ((add-space (h-2-o-char-before-is ?\s 1)))
 			(fill-region start (point))
@@ -243,6 +247,14 @@ is reflowed, but as a simpel hack it might just work."
   (insert "*")
   (h-2-o-process-children parsed-html)
   (insert "*"))
+
+(defun h-2-o-process-i (parsed-html)
+  "Surround inserted text from PARSED-HTML with '/'.
+This will not work if the tag contains too much material and/or
+is reflowed, but as a simpel hack it might just work."
+  (insert "/")
+  (h-2-o-process-children parsed-html)
+  (insert "/"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
